@@ -1,6 +1,5 @@
 {
-  "name": "tasoft/phpstorm-template-js",
-  "minimum-stability": "dev",
+  "name": "skyline/component-image-tool",
   "license": "MIT",
   "authors": [
     {
@@ -8,9 +7,22 @@
       "email": "info@tasoft.ch"
     }
   ],
-  "scripts": {
-    "post-create-project-cmd": [
-      "npm i"
-    ]
+  "autoload": {
+    "psr-4": {
+      "Skyline\\ImageTool\\": "PHP"
+    }
+  },
+  "require": {
+    "php": ">=7.2",
+    "skyline/api": "^0.9",
+    "skyline/component-api": "^0.9",
+    "skyline/pdo": "^0.9",
+	"ext-pdo": "*",
+    "tasoft/value-injector": "^1",
+	"ext-exif": "*",
+	"ext-gd": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7"
   }
 }
