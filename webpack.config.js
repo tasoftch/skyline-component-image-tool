@@ -21,32 +21,24 @@
  */
 
 const pkg = require('./package.json');
-const webpack = require('webpack');
+
 const name = pkg.name;
-let plugins = [];
-
 module.exports = (env = {}) => {
-    if (env.production) {
-        plugins = [
-            new webpack.optimize.UglifyJsPlugin({ minimize: true, compressor: { warnings: false }}),
-            new webpack.BannerPlugin(`${name} - ${pkg.version}`),
-        ]
-    }
-
     return {
+        mode: env.development ? 'development' : 'production',
+
         entry: './src',
         output: {
-            filename: `./Components/js/${name}.min.js`,
+            filename: `./${name}.min.js`,
             library: name,
-            libraryTarget: 'umd',
+            libraryTarget: 'umd'
         },
         module: {
-            loaders: [{
+            rules: [{
                 test: /\.js$/,
                 loader: 'babel-loader',
                 include: /src/,
             }],
-        },
-        plugins: plugins,
+        }
     };
 };

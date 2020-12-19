@@ -20,12 +20,10 @@
  * SOFTWARE.
  */
 
-import $ from 'jquery';
+import ImageTool from "./image-tool/tool"
 
-module.exports = (() => {
-    // Your code
-})();
-
-export default (() => {
-    // Your code
-})();
+((S)=>{
+    Object.assign(S, {
+        ImageTool
+    })
+})(window.Skyline);

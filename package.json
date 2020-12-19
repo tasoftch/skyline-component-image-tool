@@ -1,11 +1,12 @@
 {
-  "name": "javascript-template",
-  "version": "0.0.13",
+  "name": "skyline-component-image-tool",
+  "version": "0.0.26",
   "description": "A description",
   "scripts": {
     "lint": "eslint src",
     "v:patch": "npm version --no-git-tag-version patch",
-    "build": "npm run v:patch && webpack --env.production"
+    "build:css": "node-sass --output-style compressed --precision 6 style/main.scss dist/skyline-component-image-tool.min.css",
+    "build": "npm rum build:css && npm run v:patch && webpack --env.production"
   },
   "keywords": [],
   "author": "Thomas Abplanalp",
@@ -24,11 +25,12 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.19.1",
-    "webpack": "^3.11.0"
+    "node-sass": "^5.0.0",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "underscore": "^1.8.3",
-    "underscore.string": "^3.3.4",
-    "jquery": "^3.3.1"
+    "underscore.string": "^3.3.4"
   }
 }
