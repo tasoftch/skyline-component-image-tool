@@ -19,10 +19,13 @@
     "skyline/pdo": "^0.9",
 	"ext-pdo": "*",
     "tasoft/value-injector": "^1",
-	"ext-exif": "*",
-	"ext-gd": "*"
+    "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^7"
+    "phpunit/phpunit": "^7",
+    "skyline/image-render-tool": "^0.8"
+  },
+  "suggest": {
+    "skyline/image-render-tool": "^0.8"
   }
 }
