@@ -118,7 +118,7 @@ class ImageToolService extends AbstractService implements ImageToolServiceInterf
 			$uri = sprintf("%s/%s/", $this->getUriRoot(), $scope->getSlug());
 			if($preview)
 				$uri .= $scope->getPreviewAppendix() . "/";
-			return $uri;
+			return preg_replace("%//+%", "/", $uri);
 		}
 		return false;
 	}
@@ -152,6 +152,7 @@ class ImageToolService extends AbstractService implements ImageToolServiceInterf
 				$preview_appendix
 			]);
 			$this->_assignScope($s = new Scope(), $this->getPDO()->lastInsertId("SKY_IT_SCOPE"), $slug, $name, $description, $preview_appendix);
+			$this->getLocalPath($s, true, true);
 			return $s;
 		} catch (\PDOException $e) {
 			return NULL;
