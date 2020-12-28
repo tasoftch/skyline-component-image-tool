@@ -24,9 +24,10 @@ CREATE TABLE IF NOT EXISTS SKY_IT_IMAGE (
     id INTEGER PRIMARY KEY AUTOINCREMENT ,
     type INTEGER NOT NULL,
     reference INTEGER NOT NULL,
-    src_slug varchar(200) not null,
-    thumb_slug varchar(200) default null,
-    caption varchar(100) default null,
-    alternative varchar(100) default null,
+    src_slug TEXT not null,
+    thumb_slug TEXT default null,
+    caption TEXT default null,
+    alternative TEXT default null,
+    is_main INTEGER default 0,
     priority INTEGER DEFAULT 10
 );

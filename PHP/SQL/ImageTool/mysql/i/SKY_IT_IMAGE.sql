@@ -28,5 +28,6 @@ CREATE TABLE IF NOT EXISTS SKY_IT_IMAGE (
     thumb_slug varchar(200) default null,
     caption varchar(100) default null,
     alternative varchar(100) default null,
+    is_main BOOL default FALSE,
     priority INTEGER DEFAULT 10
 );
