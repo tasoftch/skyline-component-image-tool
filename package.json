@@ -1,6 +1,6 @@
 {
   "name": "skyline-component-image-tool",
-  "version": "0.0.26",
+  "version": "0.0.96",
   "description": "A description",
   "scripts": {
     "lint": "eslint src",
