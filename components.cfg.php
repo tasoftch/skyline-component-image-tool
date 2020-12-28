@@ -36,7 +36,10 @@ return [
 		'css' => new CSSComponent(
 			...AbstractComponent::makeLocalFileComponentArguments(
 				'/Public/Skyline/image-tool.min.css',
-				__DIR__ . "/dist/skyline-component-image-tool.min.css"
+				__DIR__ . "/dist/skyline-component-image-tool.min.css",
+			'sha384',
+			NULL,
+			'all'
 			)
 		),
 		'@require' => [
