@@ -20,10 +20,43 @@
  * SOFTWARE.
  */
 
-import ImageTool from "./image-tool/tool"
+import {FetchQuery} from "./image-tool/fetch-query";
+import {
+    BootstrapCarouselQueryTarget, CallbackQueryTarget,
+    CaptureQueryTarget,
+    ChainQueryTarget,
+    QueryTarget,
+    TemplateQueryTarget
+} from "./image-tool/query-target";
+import {ChangeMainQuery, ChangeNameQuery, ChangeOrderQuery, DropImageQuery} from "./image-tool/change-query";
+import {targets} from "./image-tool/targets";
+import _config from "./image-tool/config-image-capture"
+import {PutFromCaptureQuery, PutRefImageQuery} from "./image-tool/put-query";
+import {Result} from "./image-tool/result";
 
 ((S)=>{
     Object.assign(S, {
-        ImageTool
+        ImageTool: {
+            TARGETS: targets,
+            CAPTURE_CONFIG: _config
+        },
+        Query: {
+            FetchQuery,
+            ChangeNameQuery,
+            ChangeOrderQuery,
+            ChangeMainQuery,
+            PutRefImageQuery,
+            PutFromCaptureQuery,
+            DropImageQuery,
+            Result
+        },
+        Target: {
+            QueryTarget,
+            ChainQueryTarget,
+            TemplateQueryTarget,
+            CaptureQueryTarget,
+            BootstrapCarouselQueryTarget,
+            CallbackQueryTarget
+        }
     })
 })(window.Skyline);
