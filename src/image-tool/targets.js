@@ -1,3 +1,5 @@
 export const targets = {
-    find_image_action: '/v1/find-image'
+    fetch_action_uri: '/v1/image-tool/fetch',
+    change_action_uri: '/v1/image-tool/change',
+    put_action_uri: '/v1/image-tool/put'
 }
