@@ -26,6 +26,12 @@ namespace Skyline\ImageTool\Controller;
 
 use Skyline\API\Controller\AbstractAPIActionController;
 use Skyline\API\Render\JSONRender;
+use Skyline\ImageTool\Exception\ImageManipulationException;
+use Skyline\ImageTool\Exception\MissingPackageException;
+use Skyline\ImageTool\Exception\ReferenceResolutionException;
+use Skyline\ImageTool\Exception\ScopeResolutionException;
+use Skyline\ImageTool\Exception\TargetFileExistsException;
+use Skyline\ImageTool\Exception\UploadException;
 use Skyline\ImageTool\Render\ImageTranslationRender;
 use Skyline\ImageTool\Render\LocalImageRef;
 use Skyline\ImageTool\Service\ImageToolService;
@@ -88,7 +94,7 @@ abstract class AbstractImageToolAPIController extends AbstractAPIActionControlle
 	 * @param Scope|null $scope
 	 * @return bool
 	 */
-	protected function readScopeRequet($request, Scope &$scope = NULL): bool {
+	protected function readScopeRequest($request, Scope &$scope = NULL): bool {
 		if($this->isScopeRequest($request)) {
 			/** @var ImageToolService $iTool */
 			$iTool = $this->get(ImageToolService::SERVICE_NAME);
@@ -217,7 +223,7 @@ WHERE SKY_IT_SCOPE.slug = :s AND src_slug = :i", ['s' => dirname($request["i"]),
 		};
 
 		if($this->isScopeRequest($request)) {
-			if($this->readScopeRequet($request, $scope)) {
+			if($this->readScopeRequest($request, $scope)) {
 				if($select & 512) {
 					$registerScope($scope);
 				}
@@ -242,7 +248,7 @@ ORDER BY reference, priority", [$scope->getId()]) as $record) {
 					}
 				}
 			} else
-				throw new \Exception("Scope not found", 404);
+				throw new ScopeResolutionException("Scope not found", 404);
 		}
 
 		$image = NULL;
@@ -292,7 +298,7 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 
 		if($this->isScopeRequest($request)) {
 			// Change scope
-			if($this->readScopeRequet($request, $scope)) {
+			if($this->readScopeRequest($request, $scope)) {
 				$name = $request["n"] ?? NULL;
 				$desc = $request["d"] ?? NULL;
 
@@ -322,7 +328,7 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 					'description' => $desc ?? $scope->getDescription()
 				];
 			} else
-				throw new \Exception("Scope not found", 404);
+				throw new ScopeResolutionException("Scope not found", 404);
 		}
 
 		if($this->isImageRequest($request)) {
@@ -406,7 +412,8 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 					return $list;
 				})($iTool->getPDO());
 				$model["main"] = $iTool->getPDO()->selectFieldValue("SELECT id FROM SKY_IT_IMAGE WHERE reference = $ref AND is_main = 1", 'id') ?: false;
-			}
+			} else
+				throw new ReferenceResolutionException("Reference not found", 404);
 		}
 	}
 
@@ -432,27 +439,27 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 				$options = ($request['o'] ?? $defaultOptions) | $requiredOptions;
 
 				if($error)
-					throw new \RuntimeException($error);
+					throw new UploadException("Error occured while uploading the file", $error);
 
 				$root = $iTool->getLocalPath($reference->getScope());
 				if(is_file($src = $root.DIRECTORY_SEPARATOR.$slug))
-					throw new \RuntimeException("File already exists.", 407);
+					throw new TargetFileExistsException("File already exists.", TargetFileExistsException::IS_SOURCE_FILE_CODE);
 
 				if($options & (static::UPLOAD_OPTION_SCALE_TO_BEST|static::UPLOAD_OPTION_RENDER_PREVIEW|static::UPLOAD_OPTION_APPLY_TRANSFORMATION)) {
 					if(!class_exists(ImagePreviewRender::class))
-						throw new \RuntimeException("Can not manipulate images because of missing the skyline/image-render-tool package");
+						throw new MissingPackageException("Can not manipulate images because of missing the skyline/image-render-tool package", 404);
 					if(!$this->getDesiredImageRenderInfo($maxImageSize, $maxPreviewSize, $fixOrientation, $watermark))
-						throw new \RuntimeException("Can not manipulate images because of missing desired image sizes");
+						throw new MissingPackageException("Can not manipulate images because of missing desired image sizes", 405);
 
 					if($options & static::UPLOAD_OPTION_RENDER_PREVIEW) {
 						$pRoot = $iTool->getLocalPath($reference->getScope(), true);
 						if(is_file($preview = $pRoot.DIRECTORY_SEPARATOR.$slug))
-							throw new \RuntimeException("File already exists.", 408);
+							throw new TargetFileExistsException("File already exists.", TargetFileExistsException::IS_PREVIEW_FILE_CODE);
 					}
 				}
 
 				if(!move_uploaded_file($temp, $src))
-					throw new \RuntimeException("Could not copy image to destination.", 400);
+					throw new UploadException("Could not copy image to destination.", 400);
 
 				$imageType = -1;
 				$hasPreview = false;
@@ -470,11 +477,11 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 
 							$gen = new ImageTranslationRender($fw, $fh);
 							if(!$gen->renderTranslation($image, $tx, $ty, $scale))
-								throw new \RuntimeException("Could not apply transformation");
+								throw new ImageManipulationException("Could not apply transformation");
 							$q = $image->getType() == LocalImageRef::IMAGE_PNG ? 9 : ($image->getType() == LocalImageRef::IMAGE_JPEG ? 75 : 0);
 							@unlink($src);
 							if(!$image->save($src, $q))
-								throw new \RuntimeException("Could not save the preview image");
+								throw new ImageManipulationException("Could not save the preview image", 401);
 							unset($image);
 						}
 					} else {
@@ -485,12 +492,12 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 							if($image->getWidth() > $maxPreviewSize || $image->getHeight() > $maxPreviewSize) {
 								$gen = new ImagePreviewRender($maxPreviewSize);
 								if(!$gen->generatePreview($image, $fixOrientation)) {
-									throw new \RuntimeException("Could not create preview from image");
+									throw new ImageManipulationException("Could not create preview from image");
 								}
 							}
 							$q = $image->getType() == LocalImageRef::IMAGE_PNG ? 9 : ($image->getType() == LocalImageRef::IMAGE_JPEG ? 75 : 0);
 							if(!$image->save($preview, $q))
-								throw new \RuntimeException("Could not save the preview image");
+								throw new ImageManipulationException("Could not save the preview image", 401);
 							$hasPreview = true;
 							unset($image);
 						}
@@ -502,12 +509,12 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 							if($image->getWidth() > $maxImageSize || $image->getHeight() > $maxImageSize) {
 								$gen = new ImagePreviewRender($maxImageSize);
 								if(!$gen->generatePreview($image, $fixOrientation)) {
-									throw new \RuntimeException("Could not scale image to desired size");
+									throw new ImageManipulationException("Could not scale image to desired size");
 								}
 								$q = $image->getType() == LocalImageRef::IMAGE_PNG ? 9 : ($image->getType() == LocalImageRef::IMAGE_JPEG ? 75 : 0);
 								@unlink($src);
 								if(!$image->save($src, $q))
-									throw new \RuntimeException("Could not save the preview image");
+									throw new ImageManipulationException("Could not save the preview image", 401);
 							}
 							unset($image);
 						}
@@ -533,7 +540,7 @@ ORDER BY reference, priority", [$reference->getId()]) as $record) {
 					throw $throwable;
 				}
 			} else
-				throw new \RuntimeException("Reference not found", 404);
+				throw new ReferenceResolutionException("Reference not found", 404);
 		}
 	}
 }
